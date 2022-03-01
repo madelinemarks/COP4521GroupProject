@@ -1,0 +1,26 @@
+<html>
+    <body>
+        <form action = "{{ url_for ('addUser')}}" method = 'POST'>
+            <h2>Sign Up</h2>
+            Username
+            <input type = "text", name = usrnm>
+            <br>
+            First Name
+            <input type = "text", name = frst>
+            <br>
+            Last Name
+            <input type = "text", name = last>
+            <br>
+            Date of Birth
+            <input type = "date", name = dob>
+            <br>
+            Password
+            <input type = "password", name = pswd>
+            <br>
+            Confirm Password
+            <input type = "password", name = confirm>
+            <br>
+            <input type = "submit", value = "Submit">
+        </form>
+    </body>
+</html>
