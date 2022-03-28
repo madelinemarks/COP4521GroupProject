@@ -64,9 +64,39 @@ def loginAttempt():
             con.close()
             return result(msg)
 
+@app.route('/createListing')
+def createListing():
+    return render_template('createListing.html', template_folder = 'Templates')
+
+@app.route('/addListing', methods = ['POST', 'GET'])
+def addListing():
+    if request.method == 'POST':
+        con = sql.connect("siteData.db")
+        msg = "Not at try"
+        try:
+            title   = request.form['title']
+            isbn    = request.form['isbn']
+            askprc  = request.form['askprc']
+            msg = "Finished try"
+            
+            cur = con.cursor()
+            cur.execute("INSERT INTO Listings (Title, ISBN, Asking, HighestBid) VALUES (?,?,?,?)", (title,isbn,askprc,0,))
+            con.commit()
+            msg = "Successfully created listing"
+        except:
+            con.rollback()
+        finally:
+            con.close()
+            return result(msg)
+
+
 @app.route('/result')
 def result(msg):
     return render_template('result.html', template_folder = 'Templates', msg = msg)
+
+@app.route('/createTextbook')
+def createTextbook():
+    return render_template('createTextbook.html', template_folder = 'Templates')
 
 if __name__ == '__main__':      # main
    app.run(debug = True)
