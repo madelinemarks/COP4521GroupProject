@@ -1,0 +1,21 @@
+<html>
+   <body>
+      <h1>{{ msg }}</h1>
+      <center>
+      <table border = 1>
+         <thead>
+            <td>Title</td>
+            <td>ISBN</td>
+         </thead>
+         
+         {% for row in rows %}
+            <tr>
+               <td>{{row["Title"]}}</td>
+               <td>{{row["ISBN"]}}</td>
+            </tr>
+         {% endfor %}
+      </table>
+      <h2><a href = "/">Back to Home </a></h2>
+      </center>
+   </body>
+</html>

@@ -1,0 +1,16 @@
+<html>
+    <body>
+        <center>
+            <h1>Search for Textbook</h1>
+            <form id="search_form" action = "{{ url_for('searchResults') }}" method = "POST">
+                <br>
+                <input type = "text", name = "query">
+                <input type = "submit", value = "Submit"><br>
+                <input type = "radio", name = "search", id = "isbn", value = "isbn">Search by ISBN</input>
+                <input type = "radio", name = "search", id = "title", value = "title">Search by Title</input>
+                <br>
+            </form>
+        <h2><a href = "/">Back to Login</a></h2>
+        </center>
+    </body>
+</html>
