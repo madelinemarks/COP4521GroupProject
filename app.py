@@ -1,5 +1,10 @@
 from flask import Flask, render_template, request
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.service import Service
 import sqlite3 as sql
+import sys
+import time
 app = Flask(__name__)
 
 @app.route('/')
@@ -63,6 +68,65 @@ def loginAttempt():
         finally:
             con.close()
             return result(msg)
+
+@app.route('/search')
+def search():
+    return render_template('search.html', template_folder = 'Templates')
+
+
+@app.route('/searchResults', methods = ['POST', 'GET'])
+def searchResults():
+    if request.method == 'POST':
+        #start with empty dbRows tuple
+        dbRows = ()
+        try:
+            query = request.form['query']
+            type = request.form['search']
+
+            with sql.connect("siteData.db") as con:
+                cur = con.cursor()
+                con.row_factory = sql.Row
+
+                #add rows found by isbn from database
+                if type == "isbn":
+                    msg = "Searching for ISBN#" + query
+                    cur.execute("SELECT * FROM Textbooks WHERE ISBN = ?", (query))
+                    dbRows = cur.fetchall()
+                
+                #add rows found by title from database
+                elif type == "title":
+                    msg = "Searching for \"" + query + "\" by title"
+                    cur.execute("SELECT * FROM Textbooks WHERE Title = ?", (query))
+                    dbRows = cur.fetchall()
+
+                #no variable defined
+                else:
+                    msg = "Search failed, invalid query."
+                
+        except:
+            con.rollback()
+        finally:
+            con.close()
+
+            #create dictionary to find scraped web prices
+            webRows=[]
+            #load chromedriver from local chromedriver installation
+            s = Service('/Users/malry/Desktop/classes/python/chromedriver')
+            driver = webdriver.Chrome(service=s)
+            #use driver to get info from book aggregator
+            driver.get('https://www.bookfinder.com/')
+            if (type == "isbn"):
+                isbnInput = driver.find_element(By.NAME, 'isbn').send_keys(query)
+                isbnSubmit = driver.find_element(By.ID, 'submitBtn').click()
+                time.sleep(5) #TODO REMOVE, only for testing screenshot capability
+                driver.save_screenshot('isbnScreen.png')
+            elif (type == "title"):
+                titleInput = driver.find_element(By.ID, 'title').send_keys(query)
+                titleSubmit = driver.find_element(By.ID, 'submitBtn').click()
+                time.sleep(5) #TODO REMOVE, only for testing screenshot capability
+                driver.save_screenshot('titleScreen.png')
+            #create list to include results from competitor websites (amazon to start test)
+            return render_template('searchResults.html', template_folder = 'Templates', msg=msg, query=query, type=type, rows=dbRows, webRows=webRows)
 
 @app.route('/createListing')
 def createListing():
