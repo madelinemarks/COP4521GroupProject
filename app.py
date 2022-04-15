@@ -1,17 +1,12 @@
-from flask import Flask, render_template, request, url_for, redirect
+from flask import Flask, render_template, request, flash
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
-from os import environ
+from werkzeug.security import generate_password_hash, check_password_hash
 import sqlite3 as sql
 import sys
 import time
-import stripe
 app = Flask(__name__)
-
-app.config['STRIPE_PUBLIC_KEY'] = environ.get("STRIPE_PUBLIC_KEY")
-app.config['STRIPE_PRIVATE_KEY'] = environ.get("STRIPE_PRIVATE_KEY")
-stripe.api_key = app.config['STRIPE_PRIVATE_KEY']
 
 @app.route('/')
 def home():
@@ -33,17 +28,18 @@ def addUser():
                 confirm = request.form['confirm']
 
                 if pswd != confirm:
-                    msg = "Password and Confirm Password must match" # refine where this displays
+                    msg = "Passwords do not match" # refine where this displays
                 else:
                     with sql.connect("siteData.db") as con:
                         cur = con.cursor()
-                        cur.execute("INSERT INTO Users (Username, FirstName, LastName, DOB, Pass) VALUES (?,?,?,?,?)", (usrnm,frst,last,dob,pswd,))
+                        pswd_hash = generate_password_hash(pswd)  # hashing password
+                        cur.execute("INSERT INTO Users (Username, FirstName, LastName, DOB, Pass) VALUES (?,?,?,?,?)", (usrnm,frst,last,dob,pswd_hash,))
                         con.commit()
                         msg = "Successfully created user"
             except:
              con.rollback()
             finally:
-                return msg
+                return result(msg)
                 con.close()
 
 @app.route('/userTable')
@@ -66,18 +62,23 @@ def loginAttempt():
     if request.method == 'POST':
         try:
             usrnm = request.form['usrnm']
-            pswd  = request.form['pswd']
+            pswd = request.form['pswd']
 
             with sql.connect("siteData.db") as con:
                 cur = con.cursor()
                 con.row_factory = sql.Row
 
-                cur.execute("SELECT * FROM Users WHERE Username = ? AND Pass = ?", (usrnm, pswd,)) # probably reevaluate this
+                cur.execute("SELECT * FROM Users WHERE Username = ? AND Username = ?", (usrnm, usrnm)) # only works with the AND condition for some reason
                 rows = cur.fetchone()
                 if rows is None:
-                    msg = "Could not find existing user"
+                    msg = "Could not find existing username"
                 else:
-                    msg = "Found user"   
+                    pswd_hash = rows[4]
+                    if check_password_hash(pswd_hash, pswd):
+                        msg = "logged in!" #TODO: create an actual log-in session
+                        return msg
+                    else:
+                        msg = "Incorrect password"
         except:
             con.rollback()
         finally:
@@ -87,7 +88,6 @@ def loginAttempt():
 @app.route('/search')
 def search():
     return render_template('search.html', template_folder = 'Templates')
-
 
 @app.route('/searchResults', methods = ['POST', 'GET'])
 def searchResults():
@@ -107,7 +107,7 @@ def searchResults():
                     msg = "Searching for ISBN#" + query
                     cur.execute("SELECT * FROM Textbooks WHERE ISBN = ?", (query))
                     dbRows = cur.fetchall()
-                
+
                 #add rows found by title from database
                 elif type == "title":
                     msg = "Searching for \"" + query + "\" by title"
@@ -117,7 +117,7 @@ def searchResults():
                 #no variable defined
                 else:
                     msg = "Search failed, invalid query."
-                
+
         except:
             con.rollback()
         finally:
@@ -157,7 +157,7 @@ def addListing():
             isbn    = request.form['isbn']
             askprc  = request.form['askprc']
             msg = "Finished try"
-            
+
             cur = con.cursor()
             cur.execute("INSERT INTO Listings (Title, ISBN, Asking, HighestBid) VALUES (?,?,?,?)", (title,isbn,askprc,0,))
             con.commit()
@@ -176,42 +176,6 @@ def result(msg):
 @app.route('/createTextbook')
 def createTextbook():
     return render_template('createTextbook.html', template_folder = 'Templates')
-
-@app.route('/listings')
-def listings():
-   con = sql.connect("siteData.db")
-   con.row_factory = sql.Row
-   
-   cur = con.cursor()
-   cur.execute("SELECT * FROM Listings")
-   
-   rows = cur.fetchall()
-   return render_template("listings.html",rows = rows)
-
-@app.route('/checkout', methods=['POST'])
-def checkout():
-    title = request.form['title']
-    isbn = request.form['isbn']
-    asking = int(float(request.form['asking'].replace('$', ''))) * 100
-
-    session = stripe.checkout.Session.create(
-        line_items=[{
-            'name' : title,
-            'amount': asking,
-            'quantity': 1,
-            'currency' : 'usd',
-            'description' : 'ISBN: ' + isbn
-        }],
-        payment_method_types = ['card'],
-        mode = 'payment',
-        success_url = url_for('success',_external=True), #+ '?session_id={CHECKOUT_SESSION_ID}',
-        cancel_url = url_for('listings', _external=True)
-   )
-    return redirect(session.url, code=303)
-
-@app.route('/success')
-def success():
-    return render_template("success.html")
 
 if __name__ == '__main__':      # main
    app.run(debug = True)
