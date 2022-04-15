@@ -17,7 +17,6 @@ def signup():
 
 @app.route('/addUser', methods = ['POST', 'GET'])
 def addUser():
-
         if request.method == 'POST':
             try:
                 usrnm   = request.form['usrnm']
@@ -36,10 +35,21 @@ def addUser():
                         con.commit()
                         msg = "Successfully created user"
             except:
-                con.rollback()
+             con.rollback()
             finally:
+                return msg
                 con.close()
-                return result(msg)
+
+@app.route('/userTable')
+def userInfo():
+    con = sql.connect('siteData.db')
+    con.row_factory = sql.Row
+
+    cur = con.cursor()
+    cur.execute("SELECT * FROM Users")
+
+    rows = cur.fetchall();
+    return render_template('userTable.html', rows=rows)
 
 @app.route('/loginPage')
 def loginPage():
@@ -56,9 +66,8 @@ def loginAttempt():
                 cur = con.cursor()
                 con.row_factory = sql.Row
 
-                cur.execute("SELECT rowid FROM Users WHERE Username = ? AND Pass = ?", (usrnm, pswd,)) # probably reevaluate this
+                cur.execute("SELECT * FROM Users WHERE Username = ? AND Pass = ?", (usrnm, pswd,)) # probably reevaluate this
                 rows = cur.fetchone()
-
                 if rows is None:
                     msg = "Could not find existing user"
                 else:
@@ -67,7 +76,7 @@ def loginAttempt():
             con.rollback()
         finally:
             con.close()
-            return result(msg)
+            return msg
 
 @app.route('/search')
 def search():

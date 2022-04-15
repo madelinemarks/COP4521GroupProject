@@ -1,0 +1,26 @@
+<html>
+<div style= "text-align:center">
+                <h1>User Info</h1>
+                <table border = 1>
+                        <thead>
+                        <td>Username</td>
+                        <td>FirstName</td>
+                        <td>LastName</td>
+                        <td>DOB</td>
+                        <td>Pass</td>
+                        </thead>
+
+                        {% for row in rows %}
+                        <tr>
+                                <td>{{row["Username"]}}</td>
+                                <td>{{row["FirstName"]}}</td>
+                                <td>{{row["LastName"]}}</td>
+                                <td>{{row["DOB"]}}</td>
+                                <td>{{row["Pass"]}}</td>
+                        </tr>
+                        {% endfor %}
+                </table>
+
+                <a href = "/">Back to Home</a>
+        </div></body>
+</html>
