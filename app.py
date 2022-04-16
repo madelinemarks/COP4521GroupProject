@@ -147,8 +147,7 @@ def searchResults():
                 time.sleep(5)  # TODO REMOVE, only for testing screenshot capability
                 driver.save_screenshot('titleScreen.png')
             # create list to include results from competitor websites (amazon to start test)
-            return render_template('searchResults.html', template_folder='Templates', msg=msg, query=query, type=type,
-                                   rows=dbRows, webRows=webRows)
+            return render_template('searchResults.html', template_folder='Templates', msg=msg, query=query, type=type,rows=dbRows, webRows=webRows)
 
 @app.route('/createListing')
 def createListing():
