@@ -31,6 +31,7 @@ def addUser():
                 last    = request.form['last']
                 dob     = request.form['dob']
                 pswd    = request.form['pswd']
+                usrtype = request.form['usrtype']
                 confirm = request.form['confirm']
 
                 if pswd != confirm:
@@ -39,7 +40,7 @@ def addUser():
                     with sql.connect("siteData.db") as con:
                         cur = con.cursor()
                         pswd_hash = generate_password_hash(pswd)  # hashing password
-                        cur.execute("INSERT INTO Users (Username, FirstName, LastName, DOB, Pass) VALUES (?,?,?,?,?)", (usrnm,frst,last,dob,pswd_hash,))
+                        cur.execute("INSERT INTO Users (Username, FirstName, LastName, DOB, Pass, UserType) VALUES (?,?,?,?,?,?)", (usrnm,frst,last,dob,pswd_hash,usrtype,))
                         con.commit()
                         msg = "Successfully created user"
             except:
@@ -132,7 +133,7 @@ def searchResults():
             # create dictionary to find scraped web prices
             webRows = []
             # load chromedriver from local chromedriver installation
-            s = Service('/Users/malry/Desktop/classes/python/chromedriver')
+            s = Service('/Users/madelinemarks/Downloads/chromedriver')
             driver = webdriver.Chrome(service=s)
             # use driver to get info from book aggregator
             driver.get('https://www.bookfinder.com/')
