@@ -3,6 +3,7 @@
       <h1>{{ msg }}</h1>
       <center>
       <table border = 1>
+      <caption>Listings from Textbook Tracker</caption>
          <thead>
             <td>Title</td>
             <td>ISBN</td>
@@ -15,6 +16,26 @@
             </tr>
          {% endfor %}
       </table>
+      <br>
+      <br>
+      <table border = 1>
+         <caption>Listings from competitors</caption>
+            <thead>
+               <td>Title</td>
+               <td>ISBN</td>
+               <td>Price</td>
+               <td>Link</td>
+            </thead>
+            
+            {% for res in webRows %}
+               <tr>
+                  <td>{{res[0]}}</td>
+                  <td>{{res[1]}}</td>
+                  <td>{{res[2]}}</td>
+                  <td><a href="{{res[3]}}">Purchase</a></td>
+               </tr>
+            {% endfor %}
+         </table>
       <h2><a href = "/">Back to Home </a></h2>
       </center>
    </body>
