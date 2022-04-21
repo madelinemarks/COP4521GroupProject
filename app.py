@@ -29,6 +29,18 @@ def home():
 def signup():
     return render_template('signup.html', template_folder='Templates')
 
+def userExists(usrnm):
+    con = sql.connect("siteData.db")
+    cur = con.cursor()
+    con.row_factory = sql.Row
+    cur.execute("SELECT * FROM Users WHERE Username = ? AND Username = ?",(usrnm, usrnm))
+    rows = cur.fetchone()
+
+    if rows is None:
+        return False
+    else:
+        return True
+
 @app.route('/addUser', methods = ['POST', 'GET'])
 def addUser():
         if request.method == 'POST':
@@ -42,7 +54,9 @@ def addUser():
                 confirm = request.form['confirm']
 
                 if pswd != confirm:
-                    msg = "Passwords do not match" # refine where this displays
+                    msg = "Passwords do not match"
+                elif userExists(usrnm):
+                    msg = "Username already exists"
                 else:
                     with sql.connect("siteData.db") as con:
                         cur = con.cursor()
@@ -53,8 +67,8 @@ def addUser():
             except:
                 con.rollback()
             finally:
-                con.close()
                 return result(msg)
+                con.close()
 
 @app.route('/userTable')
 def userInfo():
@@ -82,7 +96,7 @@ def loginAttempt():
                 cur = con.cursor()
                 con.row_factory = sql.Row
 
-                cur.execute("SELECT * FROM Users WHERE Username = ? AND Username = ?", (usrnm, usrnm)) # only works with the AND condition for some reason
+                cur.execute("SELECT * FROM Users WHERE Username = ? AND Username = ?", (usrnm, usrnm))
                 rows = cur.fetchone()
         except:
             con.rollback()
