@@ -221,26 +221,58 @@ def listings():
 def checkout():
     title = request.form['title']
     isbn = request.form['isbn']
-    asking = int(float(request.form['asking'].replace('$', ''))) * 100
+    asking = float(request.form['asking'].replace('$', ''))
 
     session = stripe.checkout.Session.create(
         line_items=[{
             'name': title,
-            'amount': asking,
+            'amount': int(asking) * 100,
             'quantity': 1,
             'currency': 'usd',
             'description': 'ISBN: ' + isbn
         }],
+        shipping_address_collection={
+            'allowed_countries': ['US', 'CA'],
+        },
+        shipping_options=[
+        {
+            'shipping_rate_data': {
+                'type': 'fixed_amount',
+                'fixed_amount': {
+                    'amount': 0,
+                    'currency': 'usd',
+                },
+                'display_name': 'Free shipping',
+                'delivery_estimate': {
+                    'minimum': {
+                        'unit': 'business_day',
+                        'value': 5,
+                    },
+                    'maximum': {
+                        'unit': 'business_day',
+                        'value': 7,
+                    },
+                }
+            }
+        }],
         payment_method_types=['card'],
         mode='payment',
-        success_url=url_for('success', _external=True),  # + '?session_id={CHECKOUT_SESSION_ID}',
+        success_url=url_for('success', _external=True) + '?session_id={CHECKOUT_SESSION_ID}',
         cancel_url=url_for('listings', _external=True)
     )
+
     return redirect(session.url, code=303)
 
 @app.route('/success')
 def success():
-    return render_template("success.html")
+    session = stripe.checkout.Session.retrieve(request.args.get('session_id'))
+    customer = stripe.Customer.retrieve(session.customer)
+    #line_items = stripe.checkout.Session.list_line_items(request.args.get('session_id'), limit=5)
+
+    name = customer.name
+    shipping = customer.shipping
+    email = customer.email
+    return render_template("success.html", name=name, shipping=shipping, email=email)
 
 if __name__ == '__main__':  # main
     app.run(debug=True)

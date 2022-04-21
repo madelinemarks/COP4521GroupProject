@@ -1,17 +1,27 @@
 <html>
   <head><title>Thank you!</title></head>
   <body>
-    <h1>Thanks for your order!</h1>
+    <h1>Thank you {{name}} for your order!</h1>
     <p>
       We appreciate your business with us!
 
       If you have any questions or feedback, please email us at
-      <a href="mailto: test@test.com">test@test.com</a>.
+      <a href="mailto: test@test.com">test@test.com</a>.<br><br>
+
+      A confirmation email has been sent to {{email}}
     </p>
 
-    <h3>Order Summary</h3>
-    <!-- Work to be done here still -->
+    <!-- Order summary should go here -->
 
+    <h3>Shipping Info</h3>
+    <p>{{shipping.address.line1}}</p>
+    <p>
+      {% if shipping.address.line2 is not none %}
+        {{shipping.address.line2}}
+      {% endif %}
+    </p>
+    <p>{{shipping.address.city}}, {{shipping.address.country}} {{shipping.address.postal_code}}</p>
+    </p>
     <a href = "/">Go back to home page</a>
   </body>
 </html>
