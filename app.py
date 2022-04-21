@@ -139,7 +139,7 @@ def searchResults():
         finally:
             # load chromedriver from local chromedriver installation
             driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
-            wait = WebDriverWait(driver, 15)
+            wait = WebDriverWait(driver, 20)
             # use driver to get info from book aggregator
             driver.get('https://www.bookfinder.com/')
             if (type == "isbn"):
@@ -160,7 +160,6 @@ def searchResults():
                 #TODO remove once final testing screenshot to ensure correct found
                 #driver.save_screenshot('isbnScreen.png')
 
-                print( "Book Info: " + str(title) + str(query) + str(lowestNew) + str(sellerInfo), flush=True)
                 #insert into Textbooks if not found, update if found
                 cur.execute("INSERT OR IGNORE INTO Textbooks (Title, ISBN, Retail, Subj) VALUES (?, ?, ?, ?)", (title, query, lowestNew, sellerInfo,))
                 cur.execute("UPDATE Textbooks SET Retail = ? WHERE ISBN = ?", (lowestNew, query,))
@@ -172,8 +171,29 @@ def searchResults():
             elif (type == "title"):
                 titleInput = driver.find_element(By.ID, 'title').send_keys(query)
                 titleSubmit = driver.find_element(By.ID, 'submitBtn').click()
-                time.sleep(5)  # TODO REMOVE, only for testing screenshot capability
-                driver.save_screenshot('titleScreen.png')
+                
+                e = wait.until(EC.visibility_of_any_elements_located((By.XPATH, "//*[contains(text(), 'Click to pick a title')]")))
+                clickTitle = driver.find_element(By.XPATH, '//*[@id="bd"]/ul/li/span/a').click()
+
+                #find ISBN
+                e = wait.until(EC.visibility_of_element_located((By.XPATH, '//*[@id="bd"]/table/tbody/tr/td[1]/table/tbody/tr[2]/td[3]/a')))
+                isbn = e.get_attribute('innerHTML')
+
+                e = wait.until(EC.visibility_of_element_located((By.XPATH, '//*[@id="bd"]/table/tbody/tr/td[1]/table/tbody/tr[2]/td[4]/div/span/a')))
+                lowestNew = e.get_attribute('text')
+
+                newLink = driver.find_element(By.XPATH, '//*[@id="bd"]/table/tbody/tr/td[1]/table/tbody/tr[2]/td[4]/div/span/a').get_attribute('href')
+                sellerInfo = str(newLink)
+
+                #insert into Textbooks if not found, update if found
+                cur.execute("INSERT OR IGNORE INTO Textbooks (Title, ISBN, Retail, Subj) VALUES (?, ?, ?, ?)", (query, isbn, lowestNew, sellerInfo,))
+                cur.execute("UPDATE Textbooks SET Retail = ? WHERE ISBN = ?", (lowestNew, isbn,))
+                cur.execute("SELECT * FROM Textbooks WHERE ISBN = ?" , (isbn,))
+                webRows = cur.fetchall()
+                con.commit()
+                print(webRows, flush=True)
+
+                # TODO remove once final driver.save_screenshot('titleScreen.png')
             # create list to include results from competitor websites (amazon to start test)
             cur.close()
             con.close()
@@ -266,7 +286,6 @@ def checkout():
         success_url=url_for('success', _external=True) + '?session_id={CHECKOUT_SESSION_ID}',
         cancel_url=url_for('listings', _external=True)
     )
-
     return redirect(session.url, code=303)
 
 @app.route('/success')
