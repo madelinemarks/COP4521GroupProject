@@ -7,12 +7,14 @@
          <thead>
             <td>Title</td>
             <td>ISBN</td>
+            <td>Asking Price</td>
          </thead>
          
          {% for row in rows %}
             <tr>
-               <td>{{row["Title"]}}</td>
-               <td>{{row["ISBN"]}}</td>
+               <td>{{row[0]}}</td>
+               <td>{{row[1]}}</td>
+               <td>{{row[2]}}</td>
             </tr>
          {% endfor %}
       </table>
@@ -36,7 +38,7 @@
                </tr>
             {% endfor %}
          </table>
-      <h2><a href = "/">Back to Home </a></h2>
+      <h2><a href = "/home">Back to Home </a></h2>
       </center>
    </body>
 </html>
