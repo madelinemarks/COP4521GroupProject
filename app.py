@@ -18,6 +18,10 @@ app.config['STRIPE_PRIVATE_KEY'] = environ.get("STRIPE_PRIVATE_KEY")
 stripe.api_key = app.config['STRIPE_PRIVATE_KEY']
 
 @app.route('/')
+def loginRequired():
+    return render_template('loginRequired.html', template_folder='Templates')
+
+@app.route('/home')
 def home():
     return render_template('index.html', template_folder='Templates')
 
@@ -80,20 +84,22 @@ def loginAttempt():
 
                 cur.execute("SELECT * FROM Users WHERE Username = ? AND Username = ?", (usrnm, usrnm)) # only works with the AND condition for some reason
                 rows = cur.fetchone()
-                if rows is None:
-                    msg = "Could not find existing username"
-                else:
-                    pswd_hash = rows[4]
-                    if check_password_hash(pswd_hash, pswd):
-                        msg = "logged in!" #TODO: create an actual log-in session
-                        return msg
-                    else:
-                        msg = "Incorrect password"
         except:
             con.rollback()
         finally:
+            if rows is None:
+                msg = "Could not find existing username"
+                return msg
+            else:
+                pswd_hash = rows[5]
+                if check_password_hash(pswd_hash, pswd):
+                    msg = "logged in!"  # TODO: create an actual log-in session
+                    return render_template('index.html', template_folder='Templates')
+                else:
+                    msg = "Incorrect password"
+                    return msg
             con.close()
-            return msg
+            return render_template('index.html')
 
 @app.route('/search')
 def search():
