@@ -134,15 +134,19 @@ def searchResults():
 
                 # add rows found by isbn from database
                 if type == "isbn":
-                    msg = "Searching for ISBN#" + query
-                    cur.execute("SELECT * FROM Listings WHERE ISBN = ?", (query))
+                    msg = "Searching for ISBN# " + query
+                    print(("LOOKING FOR QUERY" + str(query)), flush=True)
+                    cur.execute("SELECT * FROM Listings WHERE ISBN = ?" , (query,))
                     dbRows = cur.fetchall()
+                    print((dbRows), flush=True)
 
                 # add rows found by title from database
                 elif type == "title":
                     msg = "Searching for \"" + query + "\" by title"
-                    cur.execute("SELECT * FROM Listings WHERE Title = ?", (query))
+                    print("LOOKING FOR ROWS", flush=True)
+                    cur.execute("SELECT * FROM Listings WHERE Title = ?" , (query,))
                     dbRows = cur.fetchall()
+                    print(dbRows, flush=True)
 
                 # no variable defined
                 else:
