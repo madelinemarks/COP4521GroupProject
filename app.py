@@ -7,7 +7,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 from werkzeug.security import generate_password_hash, check_password_hash
 from os import environ
-import sqlite3 as sql
+import mysql.connector
 import sys
 import time
 import stripe
@@ -30,10 +30,14 @@ def signup():
     return render_template('signup.html', template_folder='Templates')
 
 def userExists(usrnm):
-    con = sql.connect("siteData.db")
-    cur = con.cursor()
-    con.row_factory = sql.Row
-    cur.execute("SELECT * FROM Users WHERE Username = ? AND Username = ?",(usrnm, usrnm))
+    sitedb = mysql.connector.connect(
+        host="localhost",
+        user="root",
+        password="root",
+        database="pythongroup"
+    )
+    cur = sitedb.cursor(dictionary=True)
+    cur.execute("SELECT * FROM Users WHERE Username = %s AND Username = %s",(usrnm, usrnm))
     rows = cur.fetchone()
 
     if rows is None:
@@ -58,24 +62,30 @@ def addUser():
                 elif userExists(usrnm):
                     msg = "Username already exists"
                 else:
-                    with sql.connect("siteData.db") as con:
-                        cur = con.cursor()
+                    with mysql.connector.connect(host="localhost",user="root",password="root",database="pythongroup") as sitedb:
+                        cur = sitedb.cursor()
                         pswd_hash = generate_password_hash(pswd)  # hashing password
-                        cur.execute("INSERT INTO Users (Username, FirstName, LastName, DOB, Pass, UserType) VALUES (?,?,?,?,?,?)", (usrnm,frst,last,dob,pswd_hash,usrtype,))
-                        con.commit()
+                        
+                        # id needs to be randomly generated here
+                        cur.execute("INSERT INTO Users (id, Username, FirstName, LastName, DOB, Pass) VALUES (%s,%s,%s,%s,%s,%s)", (id,usrnm,frst,last,dob,pswd_hash,))
+                        sitedb.commit()
                         msg = "Successfully created user"
             except:
-                con.rollback()
+                print("sql command failed")
+                sitedb.rollback()
             finally:
                 return result(msg)
                 con.close()
 
 @app.route('/userTable')
 def userInfo():
-    con = sql.connect('siteData.db')
-    con.row_factory = sql.Row
-
-    cur = con.cursor()
+    sitedb = mysql.connector.connect(
+        host="localhost",
+        user="root",
+        password="root",
+        database="pythongroup"
+    )
+    cur = sitedb.cursor(dictionary=True)
     cur.execute("SELECT * FROM Users")
 
     rows = cur.fetchall()
@@ -92,20 +102,20 @@ def loginAttempt():
             usrnm = request.form['usrnm']
             pswd = request.form['pswd']
 
-            with sql.connect("siteData.db") as con:
-                cur = con.cursor()
-                con.row_factory = sql.Row
+            with mysql.connector.connect(host="localhost",user="root",password="root",database="pythongroup") as sitedb:
+                cur = sitedb.cursor(dictionary=True)
 
-                cur.execute("SELECT * FROM Users WHERE Username = ? AND Username = ?", (usrnm, usrnm))
+                cur.execute("SELECT * FROM Users WHERE Username = %s AND Username = %s", (usrnm, usrnm))
                 rows = cur.fetchone()
         except:
-            con.rollback()
+            sitedb.rollback()
         finally:
             if rows is None:
                 msg = "Could not find existing username"
                 return msg
             else:
-                pswd_hash = rows[5]
+                print(rows)
+                pswd_hash = rows['Pass']
                 if check_password_hash(pswd_hash, pswd):
                     msg = "logged in!"  # TODO: create an actual log-in session
                     return render_template('index.html', template_folder='Templates')
@@ -128,15 +138,13 @@ def searchResults():
             query = request.form['query']
             type = request.form['search']
 
-            with sql.connect("siteData.db") as con:
-                cur = con.cursor()
-                con.row_factory = sql.Row
-
+            with mysql.connector.connect(host="localhost",user="root",password="root",database="pythongroup") as sitedb:
+                cur = sitedb.cursor(dictionary=True)
                 # add rows found by isbn from database
                 if type == "isbn":
                     msg = "Searching for ISBN# " + query
                     print(("LOOKING FOR QUERY" + str(query)), flush=True)
-                    cur.execute("SELECT * FROM Listings WHERE ISBN = ?" , (query,))
+                    cur.execute("SELECT * FROM Listings WHERE ISBN = %s" , (query,))
                     dbRows = cur.fetchall()
                     print((dbRows), flush=True)
 
@@ -144,7 +152,7 @@ def searchResults():
                 elif type == "title":
                     msg = "Searching for \"" + query + "\" by title"
                     print("LOOKING FOR ROWS", flush=True)
-                    cur.execute("SELECT * FROM Listings WHERE Title = ?" , (query,))
+                    cur.execute("SELECT * FROM Listings WHERE Title = %s" , (query,))
                     dbRows = cur.fetchall()
                     print(dbRows, flush=True)
 
@@ -153,8 +161,16 @@ def searchResults():
                     msg = "Search failed, invalid query."
 
         except:
-            con.rollback()
+            sitedb.rollback()
         finally:
+            sitedb = mysql.connector.connect(
+                host="localhost",
+                user="root",
+                password="root",
+                database="pythongroup"
+            )
+            cur = sitedb.cursor(dictionary=True)
+
             # load chromedriver from local chromedriver installation
             driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
             wait = WebDriverWait(driver, 20)
@@ -179,11 +195,11 @@ def searchResults():
                 #driver.save_screenshot('isbnScreen.png')
 
                 #insert into Textbooks if not found, update if found
-                cur.execute("INSERT OR IGNORE INTO Textbooks (Title, ISBN, Retail, Subj) VALUES (?, ?, ?, ?)", (title, query, lowestNew, sellerInfo,))
-                cur.execute("UPDATE Textbooks SET Retail = ? WHERE ISBN = ?", (lowestNew, query,))
-                cur.execute("SELECT * FROM Textbooks WHERE ISBN = ?" , (query,))
+                cur.execute("INSERT IGNORE INTO Textbooks (Title, ISBN, Retail, Subj) VALUES (%s, %s, %s, %s)", (title, query, lowestNew, sellerInfo,))
+                cur.execute("UPDATE Textbooks SET Retail = %s WHERE ISBN = %s", (lowestNew, query,))
+                cur.execute("SELECT * FROM Textbooks WHERE ISBN = %s" , (query,))
                 webRows = cur.fetchall()
-                con.commit()
+                sitedb.commit()
                 print (webRows, flush=True)
 
             elif (type == "title"):
@@ -204,17 +220,17 @@ def searchResults():
                 sellerInfo = str(newLink)
 
                 #insert into Textbooks if not found, update if found
-                cur.execute("INSERT OR IGNORE INTO Textbooks (Title, ISBN, Retail, Subj) VALUES (?, ?, ?, ?)", (query, isbn, lowestNew, sellerInfo,))
-                cur.execute("UPDATE Textbooks SET Retail = ? WHERE ISBN = ?", (lowestNew, isbn,))
-                cur.execute("SELECT * FROM Textbooks WHERE ISBN = ?" , (isbn,))
+                cur.execute("INSERT IGNORE INTO Textbooks (Title, ISBN, Retail, Subj) VALUES (%s, %s, %s, %s)", (query, isbn, lowestNew.strip('$'), sellerInfo,))
+                cur.execute("UPDATE Textbooks SET Retail = %s WHERE ISBN = %s", (lowestNew.strip('$'), isbn,))
+                cur.execute("SELECT * FROM Textbooks WHERE ISBN = %s" , (isbn,))
                 webRows = cur.fetchall()
-                con.commit()
+                sitedb.commit()
                 print(webRows, flush=True)
 
                 # TODO remove once final driver.save_screenshot('titleScreen.png')
             # create list to include results from competitor websites (amazon to start test)
             cur.close()
-            con.close()
+            sitedb.close()
             return render_template('searchResults.html', template_folder='Templates', msg=msg, query=query, type=type,rows=dbRows, webRows=webRows)
 
 @app.route('/createListing')
@@ -224,7 +240,12 @@ def createListing():
 @app.route('/addListing', methods=['POST', 'GET'])
 def addListing():
     if request.method == 'POST':
-        con = sql.connect("siteData.db")
+        sitedb = mysql.connector.connect(
+            host="localhost",
+            user="root",
+            password="root",
+            database="pythongroup"
+        )
         msg = "Not at try"
         try:
             title = request.form['title']
@@ -232,14 +253,14 @@ def addListing():
             askprc = request.form['askprc']
             msg = "Finished try"
 
-            cur = con.cursor()
-            cur.execute("INSERT INTO Listings (Title, ISBN, Asking, HighestBid) VALUES (?,?,?,?)",(title, isbn, askprc, 0,))
-            con.commit()
+            cur = sitedb.cursor()
+            cur.execute("INSERT INTO Listings (Title, ISBN, Asking, HighestBid) VALUES (%s,%s,%s,%s)",(title, isbn, askprc, 0,))
+            sitedb.commit()
             msg = "Successfully created listing"
         except:
-            con.rollback()
+            sitedb.rollback()
         finally:
-            con.close()
+            sitedb.close()
             return result(msg)
 
 @app.route('/result')
@@ -252,10 +273,13 @@ def createTextbook():
 
 @app.route('/listings')
 def listings():
-    con = sql.connect("siteData.db")
-    con.row_factory = sql.Row
-
-    cur = con.cursor()
+    sitedb = mysql.connector.connect(
+        host="localhost",
+        user="root",
+        password="root",
+        database="pythongroup"
+    )
+    cur = sitedb.cursor(dictionary=True)
     cur.execute("SELECT * FROM Listings")
 
     rows = cur.fetchall()
