@@ -71,7 +71,6 @@ def addUser():
                         sitedb.commit()
                         msg = "Successfully created user"
             except:
-                print("sql command failed")
                 sitedb.rollback()
             finally:
                 return result(msg)
@@ -114,7 +113,6 @@ def loginAttempt():
                 msg = "Could not find existing username"
                 return msg
             else:
-                print(rows)
                 pswd_hash = rows['Pass']
                 if check_password_hash(pswd_hash, pswd):
                     msg = "logged in!"  # TODO: create an actual log-in session
