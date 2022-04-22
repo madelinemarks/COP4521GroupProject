@@ -66,8 +66,7 @@ def addUser():
                         cur = sitedb.cursor()
                         pswd_hash = generate_password_hash(pswd)  # hashing password
                         
-                        # id needs to be randomly generated here
-                        cur.execute("INSERT INTO Users (id, Username, FirstName, LastName, DOB, Pass) VALUES (%s,%s,%s,%s,%s,%s)", (id,usrnm,frst,last,dob,pswd_hash,))
+                        cur.execute("INSERT INTO Users (Username, FirstName, LastName, DOB, Pass) VALUES (%s,%s,%s,%s,%s)", (usrnm,frst,last,dob,pswd_hash,))
                         sitedb.commit()
                         msg = "Successfully created user"
             except:
