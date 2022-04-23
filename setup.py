@@ -10,7 +10,7 @@ sitedb = mysql.connector.connect(
 
 cur = sitedb.cursor()
 
-cur.execute("CREATE TABLE Users(id INTEGER PRIMARY KEY, Username VARCHAR(30) NOT NULL UNIQUE, FirstName VARCHAR(30), LastName VARCHAR(30), DOB DATE, Pass VARCHAR(255))")
+cur.execute("CREATE TABLE Users(Username VARCHAR(30) NOT NULL UNIQUE, FirstName VARCHAR(30), LastName VARCHAR(30), DOB DATE, Pass VARCHAR(255))")
 cur.execute("CREATE TABLE Textbooks(Title VARCHAR(500), ISBN VARCHAR(50) PRIMARY KEY, Retail FLOAT, Subj VARCHAR(50))")
 cur.execute("CREATE TABLE Listings(Title VARCHAR(500), ISBN VARCHAR(50), Asking FLOAT, HighestBid FLOAT)") 
 
