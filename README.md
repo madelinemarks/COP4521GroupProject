@@ -38,6 +38,7 @@ Our application is a textbook price tracker that scrapes websites for used and n
   - Login attempt function
   - Appropriate Database actions for functions listed above
   - ReadME
+  
 - Jesus Sanchez:
   - MySQL configuration
   - Stripe configuration
@@ -46,3 +47,13 @@ Our application is a textbook price tracker that scrapes websites for used and n
   - View listing function
   - Checkout function
   - Success function
+
+ - Akeila Reid: 
+  - setup.py
+  - Templates (.html files)
+  - UserExists function
+  - Add User function
+  - Login Attempt function
+  - Hashed and stored passwords in database from addUser function
+  - Login authentication in the loginAttempt function
+  - App routing
