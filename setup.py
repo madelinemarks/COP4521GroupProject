@@ -14,4 +14,4 @@ cur.execute("CREATE TABLE Users(Username VARCHAR(30) NOT NULL UNIQUE, FirstName 
             "DOB DATE, Pass VARCHAR(255))")
 cur.execute("CREATE TABLE Textbooks(Title VARCHAR(500), ISBN VARCHAR(50) PRIMARY KEY, Retail FLOAT, Subj VARCHAR(2048))")
 cur.execute("CREATE TABLE Listings(Title VARCHAR(500), ISBN VARCHAR(50), Asking FLOAT, HighestBid FLOAT)")
-cur.execute("CREATE ROLE 'administrator', 'standard'")
+
