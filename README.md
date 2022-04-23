@@ -27,4 +27,14 @@ Our application is a textbook price tracker that scrapes websites for used and n
 - Users are able to add listings and purchase other listings that have been posted to the database.
 
 # Separation of work
-- Madeline Marks: setup.py, MySQL configuration, templates (.html files), app routing, add user function, login function, add listing function, login attempt function, ReadME
+- Madeline Marks: 
+  - setup.py
+  - MySQL configuration
+  - Templates (.html files)
+  - App routing
+  - Add user function
+  - Login function
+  - Add listing function
+  - Login attempt function
+  - Appropriate Database actions for functions listed above
+  - ReadME
