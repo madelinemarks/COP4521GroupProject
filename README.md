@@ -21,7 +21,7 @@ Our application is a textbook price tracker that scrapes websites for used and n
 
 # Other Resources
 - **Cite Selenium Here**
-- **Cite Stripe Here**
+- https://stripe.com/docs/api
 
 # Extra Features
 - Users are able to add listings and purchase other listings that have been posted to the database.
@@ -38,3 +38,11 @@ Our application is a textbook price tracker that scrapes websites for used and n
   - Login attempt function
   - Appropriate Database actions for functions listed above
   - ReadME
+- Jesus Sanchez:
+  - MySQL configuration
+  - Stripe configuration
+  - Templates (.html files)
+  - App routing
+  - View listing function
+  - Checkout function
+  - Success function
