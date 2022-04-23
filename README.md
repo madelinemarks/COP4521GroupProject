@@ -7,7 +7,7 @@ Our application is a textbook price tracker that scrapes websites for textbooks 
 - Users must have a database schema on their machine named "pythongroup" and a user with access to that schema with a username and password (can be changed in setup.py lines 5-8 for whatever custom configurations the user wants to set). 
 - In order to initialize the database, the user must run pip/pip3 install mysql.connector
 - In order to initialize the web scraper, the user must run pip install selenium | By default, the webdriver requires Chrome to be installed on the machine
-** Put Stripe Requirements including .env here**
+- In order to properly configure stripe, the user must run pip install stripe | After installing, it is important that the user then creates a .env variable in the project directory to hold the stripe API keys, with 'STRIPE_PUBLIC_KEY' and 'STRIPE_PRIVATE_KEY' as the fields for the public and private keys, respectively.
 
 # Libraries Used
 - Flask
