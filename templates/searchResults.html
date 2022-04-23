@@ -1,0 +1,44 @@
+<html>
+   <body>
+      <h1>{{ msg }}</h1>
+      <center>
+      <table border = 1>
+      <caption>Listings from Textbook Tracker</caption>
+         <thead>
+            <td>Title</td>
+            <td>ISBN</td>
+            <td>Asking Price</td>
+         </thead>
+         
+         {% for row in rows %}
+            <tr>
+               <td>{{row['Title']}}</td>
+               <td>{{row['ISBN']}}</td>
+               <td>{{row['Asking']}}</td>
+            </tr>
+         {% endfor %}
+      </table>
+      <br>
+      <br>
+      <table border = 1>
+         <caption>Listings from competitors</caption>
+            <thead>
+               <td>Title</td>
+               <td>ISBN</td>
+               <td>Price</td>
+               <td>Link</td>
+            </thead>
+            
+            {% for res in webRows %}
+               <tr>
+                  <td>{{res["Title"]}}</td>
+                  <td>{{res["ISBN"]}}</td>
+                  <td>{{res["Retail"]}}</td>
+                  <td><a href="{{res['Subj']}}">Purchase</a></td>
+               </tr>
+            {% endfor %}
+         </table>
+      <h2><a href = "/home">Back to Home </a></h2>
+      </center>
+   </body>
+</html>

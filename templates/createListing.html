@@ -1,0 +1,17 @@
+<html>
+    <body>
+        <form action = "{{ url_for ('addListing') }}" method = 'POST'>
+            <h2>Create a Listing</h2>
+            Title
+            <input type = "text", name = title>
+            <br>
+            ISBN
+            <input type = "text", name = isbn>
+            <br>
+            Asking Price
+            <input type = "text", name = askprc>
+            <br>
+            <input type = "submit", value = "Submit">
+        </form>
+    </body>
+</html>
